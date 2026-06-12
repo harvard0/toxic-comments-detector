@@ -5,7 +5,7 @@
 ## 目录结构
 
 ```
-伦理/
+toxic-comments-detector/
 ├── model/                              # 模型目录
 │   ├── chinese-roberta-wwm-ext/        # 预训练模型
 │   └── final_model/                    # 训练后的模型
@@ -33,8 +33,7 @@
 
 ### 1. 安装依赖
 
-```powershell
-cd d:\学习\大三下\伦理\code
+```bash
 pip install -r requirements.txt
 ```
 
@@ -42,7 +41,7 @@ pip install -r requirements.txt
 
 预训练模型已放置在：
 ```
-d:\学习\大三下\伦理\model\chinese-roberta-wwm-ext\
+model\chinese-roberta-wwm-ext\
 ```
 
 目录内容包含：
@@ -72,8 +71,7 @@ DataGenerator_API_Model=your_model_name
 
 使用大模型 API 批量生成电商评论数据集。
 
-```powershell
-cd d:\学习\大三下\伦理\code\scripts
+```bash
 python data_generator.py
 ```
 
@@ -110,8 +108,7 @@ python data_cleaner.py
 
 统计各数据集的规模、正负例分布、类别分布。
 
-```powershell
-cd d:\学习\大三下\伦理\code\scripts
+```bash
 python multi_dataset_stats.py
 ```
 
@@ -125,8 +122,7 @@ python multi_dataset_stats.py
 
 训练投毒评论识别模型。
 
-```powershell
-cd d:\学习\大三下\伦理\code\main
+```bash
 python train.py --data ../data/train_toxic_comments_cleaned.jsonl --valid ../data/valid_toxic_comments_cleaned.jsonl --test ../data/test_toxic_comments_cleaned.jsonl
 ```
 
@@ -151,8 +147,7 @@ python train.py --data ../data/train_toxic_comments_cleaned.jsonl --valid ../dat
 
 对训练好的模型进行全面评估。
 
-```powershell
-cd d:\学习\大三下\伦理\code\main
+```bash
 python eval.py --data ../data/test_toxic_comments_cleaned.jsonl
 ```
 
@@ -176,9 +171,7 @@ python eval.py --data ../data/test_toxic_comments_cleaned.jsonl
 
 使用训练好的模型预测单条或多条评论。
 
-```powershell
-cd d:\学习\大三下\伦理\code\main
-
+```bash
 # 预测单条评论
 python inference.py --text "质量很好，加微信有优惠"
 
@@ -200,27 +193,24 @@ python inference.py --demo
 
 ## 完整工作流程
 
-```powershell
-# 1. 进入项目目录
-cd d:\学习\大三下\伦理\code
-
-# 2. 生成数据（可选）
+```bash
+# 1. 生成数据（可选）
 cd scripts
 python data_generator.py
 
-# 3. 清洗数据
+# 2. 清洗数据
 python data_cleaner.py
 
-# 4. 查看数据统计
+# 3. 查看数据统计
 python multi_dataset_stats.py
 
-# 5. 训练模型
+# 4. 训练模型
 cd ..\main
 python train.py --data ../data/train_toxic_comments_cleaned.jsonl --valid ../data/valid_toxic_comments_cleaned.jsonl --test ../data/test_toxic_comments_cleaned.jsonl
 
-# 6. 评估模型
+# 5. 评估模型
 python eval.py --data ../data/test_toxic_comments_cleaned.jsonl
 
-# 7. 使用模型预测
+# 6. 使用模型预测
 python inference.py --text "这是一条测试评论"
 ```
