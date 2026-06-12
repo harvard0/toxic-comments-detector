@@ -32,8 +32,7 @@ toxic-comments-detector/
 
 ### 环境准备
 
-```powershell
-cd d:\学习\大三下\伦理\code
+```bash
 pip install -r requirements.txt
 ```
 

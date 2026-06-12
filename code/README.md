@@ -205,7 +205,6 @@ python data_cleaner.py
 python multi_dataset_stats.py
 
 # 4. 训练模型
-cd ..\main
 python train.py --data ../data/train_toxic_comments_cleaned.jsonl --valid ../data/valid_toxic_comments_cleaned.jsonl --test ../data/test_toxic_comments_cleaned.jsonl
 
 # 5. 评估模型
