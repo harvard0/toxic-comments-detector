@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于系统 - AI投毒评论识别系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 15px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .nav-logo {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 15px;
+            transition: all 0.3s;
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: #fff;
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        /* 主容器 */
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 120px 50px 50px;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .page-title h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-title p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 16px;
+        }
+
+        /* 内容卡片 */
+        .content-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title .icon {
+            font-size: 24px;
+        }
+
+        .card-content {
+            color: rgba(255, 255, 255, 0.75);
+            line-height: 1.9;
+            font-size: 15px;
+        }
+
+        .card-content p {
+            margin-bottom: 15px;
+        }
+
+        .card-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 列表样式 */
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-list .bullet {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        /* 技术栈 */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .tech-item {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .tech-item .tech-name {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+
+        .tech-item .tech-desc {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* 模型性能表格 */
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .metrics-table th,
+        .metrics-table td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .metrics-table th {
+            background: rgba(102, 126, 234, 0.1);
+            font-weight: 600;
+            color: #a5b4fc;
+        }
+
+        .metrics-table td {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .metrics-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 流程图 */
+        .process-flow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .process-step {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 20px 25px;
+            text-align: center;
+            min-width: 140px;
+        }
+
+        .process-step .step-num {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin: 0 auto 12px;
+        }
+
+        .process-step .step-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .process-arrow {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 40px;
+            margin-top: 60px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 100px 20px 30px;
+            }
+            .navbar {
+                padding: 15px 20px;
+            }
+            .tech-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-logo">AI投毒评论识别</div>
+        <div class="nav-links">
+            <a href="/" class="nav-link">首页</a>
+            <a href="/detect" class="nav-link">在线检测</a>
+            <a href="/about" class="nav-link active">关于系统</a>
+        </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <div class="main-container">
+        <div class="page-title">
+            <h1>关于系统</h1>
+            <p>了解AI投毒评论识别系统的技术架构与核心能力</p>
+        </div>
+
+        <!-- 项目简介 -->
+        <div class="content-card">
+            <div class="card-title">
+                <span class="icon">📋</span>
+                项目简介
+            </div>
+            <div class="card-content">
+                <p>AI投毒评论识别系统是一个基于深度学习的智能文本分类系统，专门用于识别电商平台中的投毒评论。</p>
+                <p>投毒评论是指那些看似正常但实际上包含恶意推广、广告导流、虚假信息的评论，这类评论会误导消费者、破坏平台生态。本系统通过NLP技术自动识别并标记此类评论，帮助电商平台维护健康的评论环境。</p>
+            </div>
+        </div>
+
+        <!-- 技术架构 -->
+        <div class="content-card">
+            <div class="card-title">
+                <span class="icon">🔧</span>
+                技术架构
+            </div>
+            <div class="card-content">
+                <p>系统采用业界领先的预训练语言模型作为基础，结合海量电商评论数据进行微调训练：</p>
+                <div class="tech-grid">
+                    <div class="tech-item">
+                        <div class="tech-name">Chinese-RoBERTa</div>
+                        <div class="tech-desc">预训练语言模型</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-name">PyTorch</div>
+                        <div class="tech-desc">深度学习框架</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-name">Transformers</div>
+                        <div class="tech-desc">Hugging Face工具库</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-name">Flask</div>
+                        <div class="tech-desc">Web服务框架</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-name">scikit-learn</div>
+                        <div class="tech-desc">模型评估工具</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-name">Matplotlib</div>
+                        <div class="tech-desc">数据可视化</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 处理流程 -->
+        <div class="content-card">
+            <div class="card-title">
+                <span class="icon">⚙️</span>
+                处理流程
+            </div>
+            <div class="card-content">
+                <div class="process-flow">
+                    <div class="process-step">
+                        <div class="step-num">1</div>
+                        <div class="step-name">数据收集</div>
+                    </div>
+                    <div class="process-arrow">→</div>
+                    <div class="process-step">
+                        <div class="step-num">2</div>
+                        <div class="step-name">数据清洗</div>
+                    </div>
+                    <div class="process-arrow">→</div>
+                    <div class="process-step">
+                        <div class="step-num">3</div>
+                        <div class="step-name">模型训练</div>
+                    </div>
+                    <div class="process-arrow">→</div>
+                    <div class="process-step">
+                        <div class="step-num">4</div>
+                        <div class="step-name">模型评估</div>
+                    </div>
+                    <div class="process-arrow">→</div>
+                    <div class="process-step">
+                        <div class="step-num">5</div>
+                        <div class="step-name">在线检测</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模型性能 -->
+        <div class="content-card">
+            <div class="card-title">
+                <span class="icon">📊</span>
+                模型性能
+            </div>
+            <div class="card-content">
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>评估指标</th>
+                            <th>数值</th>
+                            <th>说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>准确率 (Accuracy)</td>
+                            <td>93.6%</td>
+                            <td>整体分类正确率</td>
+                        </tr>
+                        <tr>
+                            <td>精确率 (Precision)</td>
+                            <td>96.1%</td>
+                            <td>预测为投毒的准确率</td>
+                        </tr>
+                        <tr>
+                            <td>召回率 (Recall)</td>
+                            <td>90.9%</td>
+                            <td>投毒评论检出率</td>
+                        </tr>
+                        <tr>
+                            <td>F1分数</td>
+                            <td>93.4%</td>
+                            <td>精确率与召回率的调和平均</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 典型应用场景 -->
+        <div class="content-card">
+            <div class="card-title">
+                <span class="icon">🎯</span>
+                典型应用场景
+            </div>
+            <div class="card-content">
+                <ul class="feature-list">
+                    <li>
+                        <span class="bullet">•</span>
+                        <span>电商平台评论审核：自动过滤恶意推广、 spam 评论</span>
+                    </li>
+                    <li>
+                        <span class="bullet">•</span>
+                        <span>社交媒体监控：识别虚假宣传、诱导性内容</span>
+                    </li>
+                    <li>
+                        <span class="bullet">•</span>
+                        <span>客服系统辅助：帮助客服快速识别问题评论</span>
+                    </li>
+                    <li>
+                        <span class="bullet">•</span>
+                        <span>数据分析统计：统计投毒评论的分布与趋势</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p>AI投毒评论识别系统 | 基于Transformer的智能文本分类</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线检测 - AI投毒评论识别系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 15px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .nav-logo {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 15px;
+            transition: all 0.3s;
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: #fff;
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        /* 主容器 */
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 120px 50px 50px;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title h1 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-title p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 16px;
+        }
+
+        /* 检测卡片 */
+        .detect-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .input-textarea {
+            width: 100%;
+            min-height: 140px;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            font-size: 16px;
+            font-family: inherit;
+            color: #fff;
+            resize: vertical;
+            transition: all 0.3s;
+        }
+
+        .input-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .input-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .btn-detect {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-detect:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-detect:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 结果区域 */
+        .result-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-card {
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .result-card.normal {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.2) 100%);
+            border: 2px solid rgba(34, 197, 94, 0.4);
+        }
+
+        .result-card.poison {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.2) 100%);
+            border: 2px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .result-card.error {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(202, 138, 4, 0.2) 100%);
+            border: 2px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .result-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .result-label {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .result-card.normal .result-label {
+            color: #4ade80;
+        }
+
+        .result-card.poison .result-label {
+            color: #f87171;
+        }
+
+        .result-card.error .result-label {
+            color: #fbbf24;
+        }
+
+        .result-confidence {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        .result-text-box {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: left;
+        }
+
+        .result-text-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .result-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 15px;
+            line-height: 1.7;
+            word-break: break-all;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(102, 126, 234, 0.2);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            margin-top: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        /* 提示框 */
+        .tips-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .tips-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tips-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tips-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tips-list li:last-child {
+            border-bottom: none;
+        }
+
+        .tips-list li::before {
+            content: "•";
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 40px;
+            margin-top: 60px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 100px 20px 30px;
+            }
+            .navbar {
+                padding: 15px 20px;
+            }
+            .detect-card {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-logo">AI投毒评论识别</div>
+        <div class="nav-links">
+            <a href="/" class="nav-link">首页</a>
+            <a href="/detect" class="nav-link active">在线检测</a>
+            <a href="/about" class="nav-link">关于系统</a>
+        </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <div class="main-container">
+        <div class="page-title">
+            <h1>在线检测</h1>
+            <p>输入电商评论内容，系统将自动识别是否为投毒评论</p>
+        </div>
+
+        <div class="detect-card">
+            <div class="input-group">
+                <label class="input-label" for="commentInput">待检测评论</label>
+                <textarea
+                    id="commentInput"
+                    class="input-textarea"
+                    placeholder="请输入待检测的评论内容，例如：&#10;• 质量很好，加微信有优惠！&#10;• 关注公众号领优惠券&#10;• 产品不错，下次还会回购"
+                ></textarea>
+            </div>
+
+            <button id="detectBtn" class="btn-detect">开始检测</button>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p class="loading-text">AI正在分析中，请稍候...</p>
+            </div>
+
+            <div id="result" class="result-section">
+                <div id="resultCard" class="result-card">
+                    <div id="resultIcon" class="result-icon"></div>
+                    <div id="resultLabel" class="result-label"></div>
+                    <div id="resultConfidence" class="result-confidence"></div>
+                    <div class="result-text-box">
+                        <div class="result-text-label">检测文本</div>
+                        <div id="resultText" class="result-text"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 投毒评论特征提示 -->
+        <div class="tips-box">
+            <div class="tips-title">
+                <span>💡</span>
+                投毒评论典型特征
+            </div>
+            <ul class="tips-list">
+                <li>包含微信号、QQ号、群号等联系方式</li>
+                <li>诱导关注公众号、抖音、小红书等平台</li>
+                <li>推荐其他店铺或平台（如"去XX买更便宜"）</li>
+                <li>含有外部链接或二维码信息</li>
+                <li>夸大宣传并附带促销信息诱导消费</li>
+            </ul>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p>AI投毒评论识别系统 | 基于Transformer的智能文本分类</p>
+        </footer>
+    </div>
+
+    <script>
+        const commentInput = document.getElementById('commentInput');
+        const detectBtn = document.getElementById('detectBtn');
+        const loading = document.getElementById('loading');
+        const resultSection = document.getElementById('result');
+        const resultCard = document.getElementById('resultCard');
+        const resultIcon = document.getElementById('resultIcon');
+        const resultLabel = document.getElementById('resultLabel');
+        const resultConfidence = document.getElementById('resultConfidence');
+        const resultText = document.getElementById('resultText');
+
+        detectBtn.addEventListener('click', async () => {
+            const text = commentInput.value.trim();
+
+            if (!text) {
+                alert('请输入待检测的评论内容');
+                return;
+            }
+
+            // 显示加载状态
+            detectBtn.disabled = true;
+            loading.classList.add('show');
+            resultSection.classList.remove('show');
+
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showResult(data.data);
+                } else {
+                    showError(data.error || '检测失败，请稍后重试');
+                }
+            } catch (error) {
+                showError('网络错误，请检查服务是否启动');
+            } finally {
+                detectBtn.disabled = false;
+                loading.classList.remove('show');
+            }
+        });
+
+        function showResult(data) {
+            resultSection.classList.add('show');
+
+            // 设置样式
+            if (data.is_poison === null) {
+                resultCard.className = 'result-card error';
+                resultIcon.textContent = '⚠️';
+                resultLabel.textContent = data.label;
+                resultConfidence.textContent = data.error || '模型加载失败';
+            } else {
+                resultCard.className = 'result-card ' + (data.is_poison ? 'poison' : 'normal');
+                resultIcon.textContent = data.is_poison ? '⚠️' : '✅';
+                resultLabel.textContent = data.is_poison ? '投毒评论' : '正常评论';
+                resultConfidence.textContent = `置信度：${data.confidence}%`;
+            }
+
+            resultText.textContent = data.text || text;
+        }
+
+        function showError(message) {
+            resultSection.classList.add('show');
+            resultCard.className = 'result-card error';
+            resultIcon.textContent = '❌';
+            resultLabel.textContent = '检测失败';
+            resultConfidence.textContent = message;
+            resultText.textContent = commentInput.value.trim();
+        }
+
+        // 支持 Enter 提交（Shift+Enter换行）
+        commentInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                detectBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

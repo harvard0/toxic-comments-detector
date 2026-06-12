@@ -1,0 +1,4 @@
+{"original_text":"很失望","label":0,"category":"真实差评","reject_reason":"长度异常 (<5 或 >300)"}
+{"original_text":"质量太差了，穿一次就起球。","label":0,"category":"真实差评","reject_reason":"完全重复"}
+{"original_text":"味道不错，会回购。","label":1,"category":"虚假好评","reject_reason":"完全重复"}
+{"original_text":"质量很好，推荐购买！","label":1,"category":"虚假好评","reject_reason":"高度相似(归一化重复)"}

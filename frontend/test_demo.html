@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI投毒评论识别系统 - 演示测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-cases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 15px;
+        }
+
+        .test-case {
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .test-case:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-case.normal {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .test-case.poison {
+            background: #ffebee;
+            border-color: #f44336;
+        }
+
+        .test-case-label {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .test-case.normal .test-case-label {
+            color: #2e7d32;
+        }
+
+        .test-case.poison .test-case-label {
+            color: #c62828;
+        }
+
+        .test-case-text {
+            color: #333;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .demo-section {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .demo-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI投毒评论识别系统 - 测试案例</h1>
+            <p>以下为预设测试案例，可用于验证系统功能</p>
+        </div>
+
+        <div class="card">
+            <div class="card-title">
+                <span>✓</span> 正常评论示例
+            </div>
+            <div class="test-cases" id="normalCases"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">
+                <span>⚠️</span> 投毒评论示例
+            </div>
+            <div class="test-cases" id="poisonCases"></div>
+        </div>
+
+        <div class="card">
+            <div class="demo-title">使用说明</div>
+            <p style="color: #666; line-height: 1.8;">
+                1. 启动后端服务：<code style="background: #f5f5f5; padding: 2px 6px; border-radius: 4px;">cd frontend && python app.py</code><br>
+                2. 打开浏览器访问：<code style="background: #f5f5f5; padding: 2px 6px; border-radius: 4px;">http://127.0.0.1:5000</code><br>
+                3. 将上述测试案例的文本复制粘贴到输入框中进行测试
+            </p>
+
+            <div class="note">
+                <strong>注意：</strong>这是离线演示页面，不连接后端服务。请按照上述步骤启动真实的 Flask 服务进行测试。
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const normalCases = [
+            "产品质量不错，物流也很快，好评！",
+            "收到货了，和描述的一样，性价比很高",
+            "用了几天感觉还可以，下次还会回购",
+            "总体满意，就是包装可以再精致一点",
+            "卖家服务态度很好，发货速度也快",
+            "东西不错，给五星好评，下次还来",
+            "手感很好，和实体店看的一样，值得购买",
+            "物流很快，两天就到了，包装完好无损"
+        ];
+
+        const poisonCases = [
+            "加微信XXX，正品低价，先到先得",
+            "关注公众号领优惠券，更多优惠等你来",
+            "去某宝买更便宜，链接：xxx",
+            "拉你进群有优惠，名额有限快来加入",
+            "加了微信之后发现是正品，推荐给大家",
+            "质量一般，不如去XX店铺买同款",
+            "需要代购的加我微信，批发价优惠",
+            "关注抖音号XXX，每日更新优惠券"
+        ];
+
+        function renderCases(cases, containerId, type) {
+            const container = document.getElementById(containerId);
+            cases.forEach(text => {
+                const div = document.createElement('div');
+                div.className = `test-case ${type}`;
+                div.innerHTML = `
+                    <div class="test-case-label">${type === 'normal' ? '✓ 正常评论' : '⚠️ 投毒评论'}</div>
+                    <div class="test-case-text">${text}</div>
+                `;
+                div.onclick = () => {
+                    navigator.clipboard.writeText(text);
+                    alert('已复制到剪贴板！');
+                };
+                container.appendChild(div);
+            });
+        }
+
+        renderCases(normalCases, 'normalCases', 'normal');
+        renderCases(poisonCases, 'poisonCases', 'poison');
+    </script>
+</body>
+</html>
