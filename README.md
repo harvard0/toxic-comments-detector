@@ -5,7 +5,7 @@
 ## 目录结构
 
 ```
-伦理_v2/
+toxic-comments-detector/
 ├── model/                              # 模型目录
 │   ├── chinese-roberta-wwm-ext/        # 预训练模型
 │   └── final_model/                    # 训练后的模型
@@ -39,27 +39,24 @@ pip install -r requirements.txt
 
 ### 完整工作流程
 
-```powershell
-# 1. 进入脚本目录
-cd d:\学习\大三下\伦理\code\scripts
-
-# 2. 生成数据（可选）
+```bash
+# 1. 生成数据（可选）
 python data_generator.py
 
-# 3. 清洗数据
+# 2. 清洗数据
 python data_cleaner.py
 
-# 4. 查看数据统计
+# 3. 查看数据统计
 python multi_dataset_stats.py
 
-# 5. 训练模型
+# 4. 训练模型
 cd ..\main
 python train.py --data ../data/train_toxic_comments_cleaned.jsonl --valid ../data/valid_toxic_comments_cleaned.jsonl --test ../data/test_toxic_comments_cleaned.jsonl
 
-# 6. 评估模型
+# 5. 评估模型
 python eval.py --data ../data/test_toxic_comments_cleaned.jsonl
 
-# 7. 使用模型预测
+# 6. 使用模型预测
 python inference.py --text "这是一条测试评论"
 ```
 
@@ -74,9 +71,8 @@ python inference.py --text "这是一条测试评论"
 
 `frontend/app.py` 提供完整的Web页面，包含首页、检测页和关于页，可独立运行。
 
-```powershell
+```bash
 # 1. 安装依赖
-cd d:\学习\大三下\伦理_v2\frontend
 pip install flask torch transformers
 
 # 2. 启动服务
@@ -110,12 +106,11 @@ python app.py
 
 `server/app.py` 是 Streamlit 交互式界面，会自动启动后端API服务。
 
-```powershell
+```bash
 # 1. 安装依赖
 pip install streamlit requests
 
 # 2. 启动前端（会自动启动后端）
-cd d:\学习\大三下\伦理_v2\server
 streamlit run app.py
 ```
 
@@ -131,8 +126,7 @@ streamlit run app.py
 
 ### 启动API服务
 
-```powershell
-cd d:\学习\大三下\伦理_v2\server
+```bash
 python run_api.py
 ```
 
@@ -172,9 +166,7 @@ print(response.json())
 
 ### 命令行推理
 
-```powershell
-cd d:\学习\大三下\伦理_v2\server
-
+```bash
 # 单条文本预测
 python inference.py --text "这是一条测试评论"
 
